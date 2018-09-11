@@ -22,8 +22,9 @@ func main() {
 		os.Exit(0)
 	}
 
-	fmt.Println("Scanning", path, "please wait...")
+	fmt.Println("Scanning", path, "please wait")
 
+	startTime := time.Now()
 	dir, err := os.Open(path)
 	checkAndExit(err, -1)
 	defer dir.Close()
@@ -40,7 +41,8 @@ func main() {
 		}
 		files, err = dir.Readdir(n)
 	}
-	out(m)
+	writeScanDuration(startTime)
+	writeScanResults(m)
 }
 
 func checkAndExit(err error, code int) {
@@ -50,7 +52,7 @@ func checkAndExit(err error, code int) {
 	}
 }
 
-func out(m map[int64]int64) {
+func writeScanResults(m map[int64]int64) {
 	var keys []int64
 	for k := range m {
 		keys = append(keys, k)
@@ -60,4 +62,9 @@ func out(m map[int64]int64) {
 		val := m[key]
 		fmt.Println(time.Unix(key, 0).UTC().Format("2006-01-02"), val)
 	}
+}
+
+func writeScanDuration(start time.Time) {
+	scanTime := time.Since(start)
+	fmt.Println("Scan completed in", scanTime)
 }
