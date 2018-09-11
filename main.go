@@ -58,10 +58,15 @@ func writeScanResults(m map[int64]int64) {
 		keys = append(keys, k)
 	}
 	sort.Slice(keys, func(i int, j int) bool { return keys[i] < keys[j] })
+	const gb = 1024 * 1024 * 1024
+	var total float64
+	fmt.Println("Date", "Bytes")
 	for _, key := range keys {
 		val := m[key]
+		total += float64(val)
 		fmt.Println(time.Unix(key, 0).UTC().Format("2006-01-02"), val)
 	}
+	fmt.Println("Total size:", total/gb, "Gb")
 }
 
 func writeScanDuration(start time.Time) {
