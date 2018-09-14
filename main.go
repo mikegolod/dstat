@@ -6,6 +6,7 @@ import "path/filepath"
 import "io"
 import "time"
 import "sort"
+import "encoding/csv"
 
 func main() {
 	if len(os.Args) < 2 {
@@ -34,7 +35,7 @@ func main() {
 	for files, err := dir.Readdir(n); err != io.EOF; {
 		checkAndExit(err, -1)
 		for _, file := range files {
-			modDateUnix := file.ModTime().UTC().Round(24 * time.Hour).Unix()
+			modDateUnix := file.ModTime().UTC().Truncate(24 * time.Hour).Unix()
 			if !file.Mode().IsDir() {
 				m[modDateUnix] += file.Size()
 			}
@@ -60,12 +61,20 @@ func writeScanResults(m map[int64]int64) {
 	sort.Slice(keys, func(i int, j int) bool { return keys[i] < keys[j] })
 	const gb = 1024 * 1024 * 1024
 	var total float64
-	fmt.Println("Date", "Bytes")
+	outFilePath := "dstat.csv"
+	outFile, err := os.Create("dstat.csv")
+	checkAndExit(err, -2)
+	defer outFile.Close()
+	writer := csv.NewWriter(outFile)
+	writer.Write([]string{"Date", "Bytes"})
 	for _, key := range keys {
 		val := m[key]
 		total += float64(val)
-		fmt.Println(time.Unix(key, 0).UTC().Format("2006-01-02"), val)
+		t := time.Unix(key, 0).UTC()
+		writer.Write([]string{t.Format("2006-01-02"), fmt.Sprint(val)})
 	}
+	writer.Flush()
+	fmt.Println("Stats written to", outFilePath)
 	fmt.Println("Total size:", total/gb, "Gb")
 }
 
