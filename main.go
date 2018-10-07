@@ -11,6 +11,7 @@ import "encoding/csv"
 func main() {
 	if len(os.Args) < 2 {
 		fmt.Println("Usage: ", os.Args[0], "dirname")
+		os.Exit(-1)
 	}
 
 	path, err := filepath.Abs(os.Args[1])
